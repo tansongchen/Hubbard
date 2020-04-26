@@ -1,0 +1,99 @@
+\documentclass{article}
+\usepackage[hmargin=2cm,vmargin=3cm]{geometry}
+\usepackage{amsmath}
+\usepackage{indentfirst}
+\title{Time-Dependent Formulation for Bethe-Salpeter Equation}
+\author{Songchen}
+\date{February 2020}
+\begin{document}
+\maketitle
+\paragraph{Abstract} Some Abstract.
+\twocolumn
+\section{Introduction}
+(Not completed, just a placeholder.)
+\subsection{TDDFT and its limitations}
+\subsection{MBPT}
+\subsection{Our Recent Progress}
+\subsection{Closing Remarks}
+\section{Theory}
+\subsection{Bethe-Salpeter Equation}
+It is well known that the original BSE take the form
+$$
+L(1,2,1',2')=L_0(1,2,1',2')+L_0(1,3,1',3') \Xi(3',4',3,4)L(4,2,4',2')
+$$
+In the context of $GW$ approximation, we approximate $\Xi$ by
+$$
+\Xi(3',4',3,4)=-i\delta(3',3)\delta(4',4)v(3',4')+i\delta(3',4)\delta(4',3)W(3',4')
+$$
+\subsection{Eigenvalue Formulation}
+\subsubsection{Static $W$}
+After we transform the BSE to frequency domain, it becomes
+$$
+L(\omega_1,\omega_2)=L_0(\omega_1,\omega_2)+\frac{L_0(\omega_1,\omega_2)}{2\pi}\int\mathrm d\omega_3[v-W(\omega_2-\omega_3)]L(\omega_1,\omega_3)
+$$
+
+Due to the coupling in frequency, it cannot be further simplified. However, if we take $W(\omega)\approx W(\omega=0)$, we can integrate out the second frequency argument of $L$, and obtain
+$$
+L(\omega)=L_0(\omega)-iL_0(\omega)vL(\omega)+iL_0(\omega)WL(\omega)
+$$
+Then, by inserting complete sets of quasi-particle states, we are able to formulate a eigenvalue problem:
+$$
+\begin{pmatrix}A&B\\-B&-A\end{pmatrix}
+\begin{pmatrix}X\\Y\end{pmatrix}=\omega
+\begin{pmatrix}X\\Y\end{pmatrix}
+$$
+$A=D+2K^X+K^D$, and $B=2K^X+K^D$. Then matrix elements are given by
+$$
+\begin{aligned}
+D_{ia,jb}&=(\varepsilon_a-\varepsilon_i)\delta_{ia,jb}\\
+K^X_{ia,jb}&=\langle ia|v|jb\rangle\\
+K^D_{ia,jb}&=\langle ab|W(\omega=0)|ij\rangle
+\end{aligned}
+$$
+\subsection{Dynamic $W$}
+No similar eigenvalue problem can be proposed for dynamic $W$. However, assuming that the electron-hole excitation energies is well separated, we can approximate the dynamical effect through a convolution of $W$, which results in replacing the direct interaction matrix by:
+
+$$
+\begin{aligned}
+K^D_{ia,jb}(\omega)&=\int\mathrm dr\mathrm dr'a(r)b(r)i(r')j(r')\frac{i}{2\pi}\\
+&\times\int\mathrm d\omega'e^{-i\omega' 0^+}W(r,r',\omega')\left[\frac1{\omega-(\varepsilon_b-\varepsilon_i)-\omega'+i0^+}\right.\\
+&\left.+\frac1{\omega-(\varepsilon_a-\varepsilon_j)+\omega'+i0^+}\right]
+\end{aligned}
+$$
+
+In practice, this can often be done by using a plasmon expansion of $W$ and performing the convolution analytically.
+\subsection{Time-Dependent Formulation}
+(Not completed.)
+\section{Methods}
+\subsection{Systems}
+We consider a one-dimensional Hubbard model with $n=8$ atoms. The system is assumed to be closed-shell and is filled with $N=8$ electrons. The Hamiltonian reads
+
+$$
+H=\sum_{\langle lm\rangle,\sigma}T_{lm}c_{l\sigma}^{\dagger}c_{m\sigma}+ \sum_{l}n_{l\uparrow}n_{l\downarrow}
+$$
+
+Furthermore, we use an non-periodic and alternating hopping matrix:
+
+$$
+T_{l,l+1}=
+\begin{cases}
+\alpha&l=1,3,5,7\\
+\beta&l=2,4,6\\
+\end{cases}
+$$
+
+Henceforth we set $\alpha=1.5$ and $\beta=1$.
+
+\subsection{Procedures}
+We first carried out closed-shell Hartree-Fock calculation and obtain independent particle orbitals and eigenvalues. We then use them as a basis to:
+
+\begin{itemize}
+    \item Solve the BSE within eigenvalue formulation for both static and dynamic $W$;
+    \item Solve the BSE within time-dependent formulation for both static and (first order) dynamic $W$.
+\end{itemize}
+
+\section{Results}
+\subsection{Comparison of Excitation Energies}
+HF calculation gives us a HOMO at $-0.2832$ and LUMO at $1.2832$, thus the band gap is $1.5664$. Static eigenvalue formulation gives us $1.7421$, and the dynamic eigenvalue formulation gives us $1.7218$.
+\section{Conclusion}
+\end{document}
