@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 import matplotlib.font_manager
 myfont = matplotlib.font_manager.FontProperties(fname='/System/Library/Fonts/PingFang.ttc')
-from Helper import get_data_from, get_colors_with
 import math
 from matplotlib import lines
 
-with open('output/HFOrbitals.dat') as f:
+with open('data/HF.dat') as f:
     energyList = [int(float(x)*100000) for x in f.readlines()[0].strip().split()]
 
 d = {}

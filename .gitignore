@@ -1,2 +1,5 @@
 archive
+data
+bin
 *.pdf
+*.png

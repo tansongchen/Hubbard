@@ -10,7 +10,7 @@ subroutine readOrbitals(C, e)
     real(8), intent(out), dimension(:) :: e
     integer :: i
 
-    open(10, file='output/bse/HF.dat')
+    open(10, file='result/HF.dat')
     read(10, *) e
     do i = 1, n
         read(10, *) C(:,i)
@@ -22,7 +22,7 @@ subroutine readFockOperator(F)
     real(8), intent(out), dimension(:,:) :: F
     integer :: i
 
-    open(10, file='output/bse/HF.dat')
+    open(10, file='result/HF.dat')
     do i = 1, n + 1
         read(10, *) F(:,1)
     end do
@@ -150,7 +150,7 @@ function calculateW(Z) result(W)
     W_matrix = W_matrix - Z_matrix
     call getrf(W_matrix, ipiv)
     call getri(W_matrix, ipiv)
-    print '(64f13.10)', W_matrix
+    ! print '(64f13.10)', W_matrix
     ! left-multiply it by U
     do iW = 1, n2
         call one_to_two_w(iW, l, p)

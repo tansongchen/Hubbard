@@ -53,21 +53,13 @@ pure function propagatorGeneral(O, dt) result(U)
     complex(8), dimension(n,n) :: U
     complex(8), intent(in), dimension(:,:) :: O
     real(8), intent(in) :: dt
-
-    complex(8), dimension(n,n) :: Ql, Qr
-    complex(8), dimension(n) :: w
     integer :: i
 
-    U = O
-    Ql = 0
-    Qr = 0
-    w = 0
-    call geev(U, w, Ql, Qr)
-    U = 0
+    U = 0d0
     forall (i=1:n)
-        U(i,i) = exp(Im * w(i) * dt)
+        U(i,i) = 1d0
     end forall
-    U = matmul(matmul(Qr, U), transpose(Qr))
+    U = U - Im * O * dt
 end function propagatorGeneral
 
 pure function hartree(C, dt) result(J)
@@ -87,7 +79,7 @@ pure function hartree(C, dt) result(J)
     J = propagator(G, dt)
 end function
 
-function fock(C, dt, mode, WS, CPrev, HQP, plasmon) result(K)
+function fockS(C, dt, mode, WS, CPrev, HQP, plasmon) result(K)
     complex(8), dimension(n,n) :: K
     complex(8), intent(in), dimension(:,:) :: C, CPrev
     real(8), intent(in) :: dt, plasmon
@@ -119,10 +111,9 @@ function fock(C, dt, mode, WS, CPrev, HQP, plasmon) result(K)
     else if (mode == 'BSE_dynamic') then
         P = 2 * matmul(C, conjg(transpose(C)))
         PPrev = 2 * matmul(CPrev, conjg(transpose(CPrev)))
-        PDiff = (P - PPrev) / dt * Im
-        PComm = (matmul(P, HQP) - matmul(HQP, P)) * Im
         Gc = -WS * P / 2
-        Gc = Gc + (matmul(Gc, HQP) - matmul(HQP, Gc)) / plasmon
+        PDiff = (P - PPrev) / dt * Im - (matmul(P, HQP) - matmul(HQP, P))
+        Gc = Gc + (matmul(Gc, HQP) - matmul(HQP, Gc)) * Im / plasmon
         Gc = Gc - WS * (PDiff + PComm) / plasmon / 2
         K = propagatorHermitian(Gc, dt / 2)
     else
@@ -144,7 +135,7 @@ end module tdbse
 program main
     use tdbse
     implicit none
-    integer i, l
+    integer i, l, l1, l2, l3, l4
     ! Support calculation of four modes:
     ! Hartree, Hartree-Fock, BSE_static, BSE_dynamic
     character(*), parameter :: mode = 'BSE_dynamic'
@@ -175,10 +166,16 @@ program main
     T = HoppingMatrix()
     call readOrbitals(C_, e)
     call readFockOperator(HQP)
-    plasmon = e(nOcc + 1) - e(nOcc)
-    ! Q = calculateQ(C_, e)
-    ! W = calculateW(Q)
-    WS = calculateWS(C_, e)
+    ! plasmon = e(nOcc + 1) - e(nOcc)
+    plasmon = 10000
+    Q = calculateQ(C_, e)
+    W = calculateW(Q)
+    do l1 = 1, n
+    do l2 = 1, n
+        WS(l1,l2) = sum(W(l1,:,l1,l2)) / n
+    end do
+    end do
+    ! WS = calculateWS(C_, e)
     C = C_(:,1:nOcc)
     H = propagator(T, dt / 2)
     C0 = C
@@ -195,8 +192,8 @@ program main
         C0 = matmul(H, C0)
         C1 = matmul(H, C1)
         ! K
-        K0 = fock(C0, dt, mode, WS, C0Prev, HQP, plasmon)
-        K1 = fock(C1, dt, mode, WS, C1Prev, HQP, plasmon)
+        K0 = fockS(C0, dt, mode, WS, C0Prev, HQP, plasmon)
+        K1 = fockS(C1, dt, mode, WS, C1Prev, HQP, plasmon)
         C0Prev = C0
         C1Prev = C1
         C0 = matmul(K0, C0)
@@ -219,7 +216,7 @@ program main
         fourier = exp(Im * omega * ts) * exp(-ts**2*omegaInterval**2/2) * dt
         spectrum(iOmega) = dot_product(fourier, dacf)
     end do
-    open(10, file='output/bse/spectrum_'//mode//'.dat')
+    open(10, file='result/spectrum_'//mode//'.dat')
     do iOmega = 0, nOmega
         write(10, '(4f20.3)') omegas(iOmega), aimag(spectrum(iOmega))
     end do

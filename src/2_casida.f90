@@ -20,15 +20,15 @@ pure function calculateKx(C, e) result(Kx)
     end do
 end function calculateKx
 
-pure function calculateKd(C, e, WS, mode, omega) result(Kd)
+function calculateKd(C, e, mode, W, omega) result(Kd)
     real(8), dimension(nEH, nEH) :: Kd
     real(8), intent(in), dimension(:,:) :: C
-    real(8), intent(in), dimension(:,:) :: WS
     real(8), intent(in), dimension(:) :: e
     character(*), intent(in) :: mode
+    real(8), intent(in), dimension(:,:,:,:), optional :: W
     real(8), intent(in), optional :: omega
 
-    real(8) :: omega_0, EA, EB
+    real(8) :: omega_0, EA, EB, factor
     integer :: a, b, i, j, l, m, p, q, ia, jb
 
     Kd = 0
@@ -50,26 +50,28 @@ pure function calculateKd(C, e, WS, mode, omega) result(Kd)
                 call one_to_two(jb, j, b)
                 do l = 1, n
                 do m = 1, n
-                ! do p = 1, n
-                ! do q = 1, n
-                    ! Kd(ia,jb) = Kd(ia,jb) + C(l,a) * C(m,i) * C(p,b) * C(q,j) * W(l,m,p,q)
-                ! end do
-                ! end do
-                    Kd(ia,jb) = Kd(ia,jb) + C(l,a) * C(m,i) * C(l,b) * C(m,j) * WS(l,m)
+                do p = 1, n
+                do q = 1, n
+                    Kd(ia,jb) = Kd(ia,jb) + C(l,a) * C(m,i) * C(p,b) * C(q,j) * W(l,m,p,q)
+                end do
+                end do
+                    ! Kd(ia,jb) = Kd(ia,jb) + C(l,a) * C(m,i) * C(l,b) * C(m,j) * WS(l,m)
                 end do
                 end do
             end do
             end do
     end select
     if (mode == 'BSE_dynamic') then
-        omega_0 = e(n/2+1) - e(n/2)
+        omega_0 = 1.747d0
         do ia = 1, nEH
         do jb = 1, nEH
             call one_to_two(ia, i, a)
             call one_to_two(jb, j, b)
             EA = omega - (e(b) - e(i))
             EB = omega - (e(a) - e(j))
-            Kd(ia,jb) = Kd(ia,jb) * (omega_0 / (omega_0 - EA) + omega_0 / (omega_0 - EB)) / 2
+            factor = (omega_0 / (omega_0 - EA) + omega_0 / (omega_0 - EB)) / 2
+            ! print *, factor
+            Kd(ia,jb) = Kd(ia,jb) * min(factor, 1d0)
         end do
         end do
     end if
@@ -189,8 +191,10 @@ program main
     ! Support calculation of four modes:
     ! Hartree, Hartree-Fock, BSE_static, BSE_dynamic
     character(*), parameter :: mode = 'BSE_dynamic'
+    integer :: i
     real(8), parameter :: tolerance = 1d-4
-    real(8) :: bandgapLeft = 1.6d0, bandgapRight = 1.8d0, bandgap = 0
+    real(8) :: bandgapLeft = 1.6d0, bandgapRight = 1.8d0, bandgap = 0, plasmon = 0
+    real(8), dimension(20), parameter :: plots = [(1.6 + i * 0.01, i = 1, 20)]
     real(8), dimension(2*nEH, 2*nEH) :: M, V
     real(8), dimension(2*nEH) :: omega
     real(8), dimension(nEH,nEH) :: D, Kx, Kd
@@ -200,32 +204,39 @@ program main
 
     call readOrbitals(C, e)
     D = calculateD(e)
-    ! Q = calculateQ(C, e)
-    ! W = calculateW(Q)
-    WS = calculateWS(C, e)
+    Q = calculateQ(C, e)
+    W = calculateW(Q)
+    ! WS = calculateWS(C, e)
     Kx = calculateKx(C, e)
     if (mode == 'BSE_dynamic') then
         ! Now, let f(ω) = lowestExcitation(M(ω)) - ω, we
         ! know that f(1.7) > 0, f(1.8) < 0, so we use bisection.
-        do while (bandgapRight - bandgapLeft > tolerance)
-            bandgap = (bandgapLeft + bandgapRight) / 2
-            print *, bandgap
-            Kd = calculateKd(C, e, WS, mode, bandgap)
+        ! do while (bandgapRight - bandgapLeft > tolerance)
+        !     bandgap = (bandgapLeft + bandgapRight) / 2
+        !     print *, bandgap
+        !     Kd = calculateKd(C, e, mode, WS, bandgap)
+        !     M = prepareCasida(D, Kx, Kd)
+        !     call Casida(M, omega)
+        !     if ((omega(nEH + 1) - bandgap) > 0) then
+        !         bandgapLeft = bandgap
+        !     else
+        !         bandgapRight = bandgap
+        !     end if
+        ! end do
+        do i = 1, 20
+            plasmon = plots(i)
+            Kd = calculateKd(C, e, mode, W, plasmon)
             M = prepareCasida(D, Kx, Kd)
             call Casida(M, omega)
-            if ((omega(nEH + 1) - bandgap) > 0) then
-                bandgapLeft = bandgap
-            else
-                bandgapRight = bandgap
-            end if
+            print *, plasmon, omega(nEH + 1)
         end do
     else
-        Kd = calculateKd(C, e, WS, mode)
+        Kd = calculateKd(C, e, mode, W)
         M = prepareCasida(D, Kx, Kd)
         call Casida(M, omega)
         bandgap = omega(nEH + 1)
     end if
-    open(11, file='output/bse/casida_'//mode//'.dat')
+    open(11, file='result/casida_'//mode//'.dat')
     write(11, '(f10.5)') bandgap
     close(11)
 end program

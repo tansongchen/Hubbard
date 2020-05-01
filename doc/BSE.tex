@@ -2,66 +2,96 @@
 \usepackage[hmargin=2cm,vmargin=3cm]{geometry}
 \usepackage{amsmath}
 \usepackage{indentfirst}
-\title{Time-Dependent Formulation for Bethe-Salpeter Equation}
+\title{A Time-Dependent Formulation for the Bethe-Salpeter Equation}
 \author{Songchen}
-\date{February 2020}
+\date{\today}
 \begin{document}
 \maketitle
 \paragraph{Abstract} Some Abstract.
-\twocolumn
-\section{Introduction}
-(Not completed, just a placeholder.)
-\subsection{TDDFT and its limitations}
-\subsection{MBPT}
-\subsection{Our Recent Progress}
-\subsection{Closing Remarks}
+\section{Background}
+Understanding the optical absorption spectra of large nanosystems \emph{via} appropriate theoretical approaches is indispensable in designing advanced materials and electronic devices. Time-dependent density functional theory (TDDFT) has been extremely successful for describing excited state properties for small molecules, but often fail for complex extended systems, where multiple excitations, as well as low-lying excitonics may appear.
+
+An alternative approach to investigate the excited state structures is many-body perturbation theory (MBPT). In general, the most common tools from MBPT is \emph{GW} approximation for quasiparticle excitations and Bethe-Salpeter equation (BSE) for particle-hole excitations. The BSE is often formulated with a eigenvalue problem, analogous to the Casida equation in TDDFT. However, solving the eigenvalue problem usually scales as at least $O(N^6)$, which prohibits the application in large systems.
+
+Since the time-dependent formulation is in principle much cheaper and extensible, considerable efforts have been made on developing novel time-dependent approach that inspired by MBPT relations. These attempts include deriving exchange-correlation kernel $f_{\rm xc}$ from BSE. However, since the direct interaction block in BSE is intrinsically non-local and frequency-dependent, approximating it in terms of TDDFT has not been satisfactory.
+
+Recently, inspired by the well-known connection between CIS and TDHF, we have proposed a time-dependent Bethe-Salpeter approach, where we used a modified exchange operator to approximately represent the direct interaction block with a scalar screening constant $\varepsilon$. However, determining the screening constant may require some \emph{a priori} knowledge for the system.
+
+In this paper, we present a fully first-principle time-dependent formulation for Bethe-Salpeter equation, where the modified exchange opeartor can account for both static and dynamic screening. The accuracy has been demonstrated with a 1D Hubbard model.
 \section{Theory}
 \subsection{Bethe-Salpeter Equation}
-It is well known that the original BSE take the form
+It is well known that the original BSE, which can be easily derived from functional derivative approach, take the form
+
 $$
 L(1,2,1',2')=L_0(1,2,1',2')+L_0(1,3,1',3') \Xi(3',4',3,4)L(4,2,4',2')
 $$
-In the context of $GW$ approximation, we approximate $\Xi$ by
+
+Where $L$ is the two-particle correlation function defined by $L(1,2,1',2') = G(1,1')G(2,2')-G_2(1,2,1,2')$, $L_0$ is the non-interacting correlation function $L_0(1,2,1',2')=G(1,2')G(2,1')$, and $\Xi(3',4',3,4)$ is the exchange correlation kernel, formally defined by the functional derivative of self-energy with respect to Green function
+
+$$
+\Xi(3',4',3,4) = \frac{\delta\Sigma(3',3)}{\delta G(4,4')}
+$$
+
+As long as $GW$ approximation is valid, and assuming that $W$ does not depend on $G$, the exchange-correlation kernel $\Xi$ can be approximated by
+
 $$
 \Xi(3',4',3,4)=-i\delta(3',3)\delta(4',4)v(3',4')+i\delta(3',4)\delta(4',3)W(3',4')
 $$
 \subsection{Eigenvalue Formulation}
 \subsubsection{Static $W$}
-After we transform the BSE to frequency domain, it becomes
+The above equation can be transform to frequency domain:
+
 $$
 L(\omega_1,\omega_2)=L_0(\omega_1,\omega_2)+\frac{L_0(\omega_1,\omega_2)}{2\pi}\int\mathrm d\omega_3[v-W(\omega_2-\omega_3)]L(\omega_1,\omega_3)
 $$
 
-Due to the coupling in frequency, it cannot be further simplified. However, if we take $W(\omega)\approx W(\omega=0)$, we can integrate out the second frequency argument of $L$, and obtain
+Due to the coupling in frequency, it cannot be further simplified. However, if one take $W(\omega)\approx W(0)$, we can integrate out the second frequency argument of $L$, and obtain
+
 $$
 L(\omega)=L_0(\omega)-iL_0(\omega)vL(\omega)+iL_0(\omega)WL(\omega)
 $$
+
 Then, by inserting complete sets of quasi-particle states, we are able to formulate a eigenvalue problem:
+
 $$
 \begin{pmatrix}A&B\\-B&-A\end{pmatrix}
 \begin{pmatrix}X\\Y\end{pmatrix}=\omega
 \begin{pmatrix}X\\Y\end{pmatrix}
 $$
-$A=D+2K^X+K^D$, and $B=2K^X+K^D$. Then matrix elements are given by
+
+Where the matrix block reads $A=D+2K^X-K^D$, and $B=2K^X-K^D$. These matrix elements are given by
+
 $$
 \begin{aligned}
 D_{ia,jb}&=(\varepsilon_a-\varepsilon_i)\delta_{ia,jb}\\
 K^X_{ia,jb}&=\langle ia|v|jb\rangle\\
-K^D_{ia,jb}&=\langle ab|W(\omega=0)|ij\rangle
+K^D_{ia,jb}&=\langle ab|W(0)|ij\rangle
 \end{aligned}
 $$
-\subsection{Dynamic $W$}
-No similar eigenvalue problem can be proposed for dynamic $W$. However, assuming that the electron-hole excitation energies is well separated, we can approximate the dynamical effect through a convolution of $W$, which results in replacing the direct interaction matrix by:
+
+\subsubsection{Dynamic $W$}
+
+No simple eigenvalue problem can be proposed for dynamic $W$. However, assuming that the electron-hole excitation energies is well separated, we can approximate the dynamical effect through a convolution of $W$, which results in replacing the direct interaction matrix by:
 
 $$
 \begin{aligned}
 K^D_{ia,jb}(\omega)&=\int\mathrm dr\mathrm dr'a(r)b(r)i(r')j(r')\frac{i}{2\pi}\\
-&\times\int\mathrm d\omega'e^{-i\omega' 0^+}W(r,r',\omega')\left[\frac1{\omega-(\varepsilon_b-\varepsilon_i)-\omega'+i0^+}\right.\\
-&\left.+\frac1{\omega-(\varepsilon_a-\varepsilon_j)+\omega'+i0^+}\right]
+&\times\int\mathrm d\omega'e^{-i\omega' 0^+}W(r,r',\omega')\left[\frac1{\omega-(\varepsilon_b-\varepsilon_i)-\omega'+i0^+}+\frac1{\omega-(\varepsilon_a-\varepsilon_j)+\omega'+i0^+}\right]
 \end{aligned}
 $$
 
-In practice, this can often be done by using a plasmon expansion of $W$ and performing the convolution analytically.
+In practice, this can often be done by using a plasmon expansion of $W$ and performing the convolution analytically. The plasmon expansion usually takes the form
+
+$$
+W(r,r', \omega)= \sum_{l} \frac{W_{l}(r, r')}2 \left(\frac{\omega_{l}}{\omega-\omega_{l}}-\frac{\omega_{l}}{\omega+\omega_{l}}\right)
+$$
+
+The direct interaction block will thus be
+
+$$
+K^D_{ia,jb}(\omega)=-\int\mathrm dr\mathrm dr'a(r)b(r)i(r')j(r')\left[\sum_l\frac{W_{l}(r, r')}2 \left(\frac{\omega_{l}}{\omega_{l}-A}+\frac{\omega_{l}}{\omega_{l}-B}\right)\right]
+$$
+
 \subsection{Time-Dependent Formulation}
 (Not completed.)
 \section{Methods}
