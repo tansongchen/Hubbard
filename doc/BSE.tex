@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage[hmargin=2cm,vmargin=3cm]{geometry}
 \usepackage{amsmath}
+\usepackage{graphicx}
 \usepackage{indentfirst}
 \title{A Time-Dependent Formulation for the Bethe-Salpeter Equation}
 \author{Songchen}
@@ -95,7 +96,6 @@ $$
 \subsection{Time-Dependent Formulation}
 (Not completed.)
 \section{Methods}
-\subsection{Systems}
 We consider a one-dimensional Hubbard model with $n=8$ atoms. The system is assumed to be closed-shell and is filled with $N=8$ electrons. The Hamiltonian reads
 
 $$
@@ -112,18 +112,30 @@ T_{l,l+1}=
 \end{cases}
 $$
 
-Henceforth we set $\alpha=1.5$ and $\beta=1$.
-
-\subsection{Procedures}
-We first carried out closed-shell Hartree-Fock calculation and obtain independent particle orbitals and eigenvalues. We then use them as a basis to:
-
-\begin{itemize}
-    \item Solve the BSE within eigenvalue formulation for both static and dynamic $W$;
-    \item Solve the BSE within time-dependent formulation for both static and (first order) dynamic $W$.
-\end{itemize}
+We first carried out closed-shell Hartree-Fock calculation and obtain independent particle orbitals and eigenvalues. We then use them as a basis to solve the BSE within eigenvalue formulation for both static and dynamic $W$, as well as to solve the BSE within time-dependent formulation for both static and (first order) dynamic $W$. Finally, we perform a CI calculation to validate all above results.
 
 \section{Results}
 \subsection{Comparison of Excitation Energies}
-HF calculation gives us a HOMO at $-0.2832$ and LUMO at $1.2832$, thus the band gap is $1.5664$. Static eigenvalue formulation gives us $1.7421$, and the dynamic eigenvalue formulation gives us $1.7218$.
+
+We first choose the parameter to be $\alpha=1.5$ and $\beta=1$. The closed-shell Hartree-Fock calculation gives us a set of energy levels which is symmetric around 0.5.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[scale=0.5]{hf.png}
+    \caption{Hartree-Fock Energies}
+\end{figure}
+
+Specifically, the HOMO is at $-0.28$ and the LUMO is at $1.28$, thus the band gap is $1.57$. We note that this moderate band gap represents semiconductors. 
+
+We then investigate the eigenvalue problem with different version of approximations. We denote $K^{D}_{\rm Hartree}$ for $K^{D}_{ia,jb}=0$, $K^{D}_{\rm Fock}$ for $K^{D}_{ia,jb}=\langle ab|v|ij\rangle$, and $K^D_{\rm static}$, $K^D_{\rm dynamic}$ for the "real" BSE matrix.
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.6]{compare.png}
+    \caption{Lowest Optical Excitation Calculated from Various Kind of Eigenvalue and Time-Dependent Approach}
+\end{figure}
+
+For all types of calculation (Hartree, Hartree-Fock, static BSE, dynamic BSE), the time-dependent calculation coincides the eigenvalue calculation. We note that the BSE results are consistently most accurate when compared to CI.
+
 \section{Conclusion}
 \end{document}

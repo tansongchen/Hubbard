@@ -12,7 +12,7 @@ integer, parameter :: nOcc = 4, nVir = n - nOcc, nEH = nOcc * nVir
 contains
 
 pure function HoppingMatrix() result(T)
-    real(8), dimension(N,N) :: T
+    real(8), dimension(n,n) :: T
     integer :: l
 
     do l = 1, N - 1

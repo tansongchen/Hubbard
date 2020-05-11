@@ -10,7 +10,7 @@ subroutine readOrbitals(C, e)
     real(8), intent(out), dimension(:) :: e
     integer :: i
 
-    open(10, file='result/HF.dat')
+    open(10, file='data/HF.dat')
     read(10, *) e
     do i = 1, n
         read(10, *) C(:,i)
@@ -22,7 +22,7 @@ subroutine readFockOperator(F)
     real(8), intent(out), dimension(:,:) :: F
     integer :: i
 
-    open(10, file='result/HF.dat')
+    open(10, file='data/HF.dat')
     do i = 1, n + 1
         read(10, *) F(:,1)
     end do
